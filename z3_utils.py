@@ -35,7 +35,7 @@
 #
 
 #
-#############################################
+############################################# 
 # Global constraints (decompositions) in Z3 #
 #############################################
 #
@@ -86,19 +86,19 @@
 # - arith(sol, x, relop, val)
 # - arith_relop(sol, a, t, b)
 #
-#
+# 
 # TODO
 # lex_(le|lt|ge|gt)(sol,x,y)  : array x is lexicographic (equal or) less/greater than array y
 # diffn?
 # subcircuit???
-#
+# 
 # This Z3 model was written by Hakan Kjellerstrand (hakank@gmail.com)
 # See also my Z3 page: http://hakank.org/z3/
-#
+# 
 #
 from __future__ import print_function
 
-from z3 import *
+from z3.z3 import *
 import uuid
 import time
 
@@ -195,7 +195,7 @@ def makeRealArray(sol, name, size, min_val, max_val):
 # Usage:
 #   addDifferentSolution(sol,mod,x,y,z,...)
 # where x,y,z,.. are arrays.
-#
+# 
 # Note: For the optimization problems, one should use either
 #   addLessSolution(sol,mod,z)
 # for minimization problems
@@ -349,7 +349,7 @@ def count(sol, value, x, n):
 
 
 # count/3
-# same as count/4 but returns the sum value
+# same as count/4 but returns the sum value 
 def count2(sol, value, x):
     return Sum([If(x[i] == value, 1, 0) for i in range(len(x))])
 
@@ -402,7 +402,7 @@ def circuit(sol, x, z, n):
     #     sol.add(z[i] >= 1, z[i] <= n)
 
     #
-    # The main constraint is that Z[I] must not be 1
+    # The main constraint is that Z[I] must not be 1 
     # until I = N, and for I = N it must be 1.
     #
 
@@ -667,7 +667,7 @@ def regular(sol, x, Q, S, d, q0, F, x_len):
 # all_different_modulo(sol, x, m)
 #
 # Ensure that all elements in x (modulo m) are distinct
-#
+# 
 def all_different_modulo(sol, x, m):
     n = len(x)
     mods = makeIntVector(sol, "mods", n, 0, m - 1)
@@ -679,13 +679,13 @@ def all_different_modulo(sol, x, m):
 # among(sol,m,x,v)
 #
 # Requires exactly m variables in x to take one of the values in v.
-#
+# 
 def among(sol, m, x, v):
     sol.add(m == Sum([If(x[i] == j, 1, 0) for i in range(len(x)) for j in v]))
 
 
 # nvalue(sol, m, x, min_val,max_val)
-#
+# 
 # Requires that there is exactly m distinct values in x
 # (min_val and max_val are the minimum and maximum value
 # in x, respectively)
@@ -698,9 +698,9 @@ def nvalue(sol, m, x, min_val, max_val):
 #
 # clique(sol, g, clique, card)
 #
-# Ensure that the boolean array "clique" (of Integer Array type)
+# Ensure that the boolean array "clique" (of Integer Array type) 
 # represents a clique in the graph g with the cardinality card.
-#
+# 
 # Note: This is kind of backward, but it is the whole thing:
 # If there is a connection between nodes I and J (I \= J) then
 # there should be a node from I to J in G. If it's not then
@@ -826,7 +826,7 @@ def arith(sol, x, relop, val):
 #
 # This is (arguably) a hack.
 # Represents each function as an integer 0..5.
-#
+# 
 def arith_relop(sol, a, t, b):
     sol.add(Implies(t == 0, a < b))
     sol.add(Implies(t == 1, a <= b))
@@ -908,7 +908,7 @@ if __name__ == "__main__":
 
 #
 # diffn ported from MiniZinc's fzn_diffn:
-#
+# 
 # predicate fzn_diffn(array[int] of var int: x,
 #                 array[int] of var int: y,
 #                 array[int] of var int: dx,
