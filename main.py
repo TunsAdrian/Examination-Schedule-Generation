@@ -10,8 +10,9 @@ def get_col(arr, col):
 #times = [8, 10, 12, 14, 16, 18]
 times = [12,14]
 #days = [10, 11, 12, 13, 14, 17, 18, 19, 20, 21, 24, 25, 26, 27, 28]
-days = [30]
-exams = [["DAIR", "AIDC", "Raluca-Muresan"], ["DAIR2", "BD", "Raluca-Muresan"]]
+days = [29,30,31,32]
+exams = [["DAIR", "BD", "Raluca-Muresan"], ["DAIR2", "BD", "Raluca-Muresan"],  ["DAIR3", "AIDC", "Raluca-Muresan"]]
+batchs = ["AIDC", "BD"]
 
 time_slots = {}
 j =0;
@@ -20,8 +21,6 @@ for i in itertools.product(days, times):
 	time_slots[j] = i
 	j += 1
 
-# time_slots = list(time_slots.values())
-# print(type(time_slots[1]))
 print(time_slots.values())
 
 course_times = {}
@@ -84,8 +83,20 @@ for i,appointment in enumerate(appointments):
 all_exams_taken = And(aux2)
 #only one exam taken by a batch in a day
 
-aux = []
+aux2 = []
 
+# for b in batchs:
+# 	aux = []
+# 	for d in days:
+# 		for i,appointment in enumerate(appointments):
+# 			if appointment[1] == b:
+# 				if appointment[3] == d:
+# 					aux.append(Or(appointment))
+#
+# 	aux2.append(And(aux))
+#
+#
+# exams_from_same_batch = And(aux2)
 for i,appointment in enumerate(appointments):
 	for j,appointment2 in enumerate(appointments):
 		if appointment != appointment2:
@@ -97,18 +108,31 @@ for i,appointment in enumerate(appointments):
 					# print(appointment2)
 					# print(all_times[j])
 					# print('--------------')
-					aux.append(Implies(all_times[i],Not(all_times[j])))
+					aux.append(Implies(all_times[i],And(all_times[j])))
 					#aux.append(Or(all_times[i], all_times[j]))
 
-exams_from_same_batch = And(aux);
+exams_from_same_batch = And(aux)
 
-#if there are more exams taken by a batch, the exam should be on the same day
+#if there are more exams taken by a batch, the exam should not be on the same day
+aux = []
+for i, appointment in enumerate(appointments):
+	for j, appointment2 in enumerate(appointments):
+		if appointment != appointment2:
+			if appointment[1] == appointment2[1]:
+				if appointment[0] != appointment2[0]:
+					if abs(int(appointment[3]) - int(appointment2[3])) > 1:
+						print(abs(int(appointment[3]) - int(appointment2[3])))
+						aux.append(Implies(all_times[i], all_times[j]))
 
+
+exams_days_diff = And(aux)
 solver = Solver()
 
-solver.add(exams_from_same_batch)
-solver.add(exams_from_same_teacher)
 solver.add(all_exams_taken)
+solver.add(exams_days_diff)
+#solver.add(exams_from_same_batch)
+solver.add(exams_from_same_teacher)
+
 
 print(solver)
 if solver.check() == sat:
@@ -117,7 +141,7 @@ if solver.check() == sat:
 	for time in all_times:
 		if model.evaluate(time):
 			print(time)
-	#print(model)
+	print(model)
 else:
 	print('unsat')
 
