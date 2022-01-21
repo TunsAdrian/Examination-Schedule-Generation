@@ -10,7 +10,7 @@ def get_col(arr, col):
 #times = [8, 10, 12, 14, 16, 18]
 times = [12,14]
 #days = [10, 11, 12, 13, 14, 17, 18, 19, 20, 21, 24, 25, 26, 27, 28]
-days = [29,30,31,32]
+days = [29,30,31]
 exams = [["DAIR", "BD", "Raluca-Muresan"], ["DAIR2", "BD", "Raluca-Muresan"],  ["DAIR3", "AIDC", "Raluca-Muresan"]]
 batchs = ["AIDC", "BD"]
 
@@ -108,7 +108,7 @@ for i,appointment in enumerate(appointments):
 					# print(appointment2)
 					# print(all_times[j])
 					# print('--------------')
-					aux.append(Implies(all_times[i],And(all_times[j])))
+					aux.append(Implies(all_times[i],Not(all_times[j])))
 					#aux.append(Or(all_times[i], all_times[j]))
 
 exams_from_same_batch = And(aux)
@@ -128,11 +128,11 @@ for i, appointment in enumerate(appointments):
 exams_days_diff = And(aux)
 solver = Solver()
 
+
 solver.add(all_exams_taken)
-solver.add(exams_days_diff)
 #solver.add(exams_from_same_batch)
 solver.add(exams_from_same_teacher)
-
+solver.add(exams_days_diff)
 
 print(solver)
 if solver.check() == sat:
