@@ -12,14 +12,14 @@ IA3,IA,Prof.dr. V. Negru,3
 PS/MPP,IA,Lect. dr. M. Gaianu/Lect.dr.A.Popovici,3
 MPI/TSS,IA,Asist. dr. L. Coroban/Ing. R. Seculi,3
 MLL,IA,Conf.dr. V. Iordan,3
-DISCIPLINE COMPLEMENTARE,PROFESOR-COMPLEMENTARE,IA,3,
+DISCIPLINE COMPLEMENTARE,IA,PROFESOR-COMPLEMENTARE,3,
 AI,IE,Lect. dr. H. Popa Andreescu,3
 WT,IE,Lect. dr.G.Iuhasz,3
 DE,IE,Conf.dr. E. Kaslik,3
 APP,IE,Dr. A. Copie,3
 DP/IB/IT,IE,Conf. dr. F.Micota/Lect. dr. C. Cira/Conf. dr. C.Bonchis,3
 MBT,IE,Conf.dr. M.Erascu,3
-TRANSVERSAL COMPONENTS,PROFESOR-COMPLEMENTARE,IE,3,
+TRANSVERSAL COMPONENTS,IE,PROFESOR-COMPLEMENTARE,3,
 SO I,IR,Conf. dr. F. Fortis,2
 BD I,IR,Conf. dr. D.Pop,2
 P3,IR,Conf. dr. F.Micota,2
@@ -27,7 +27,7 @@ TGC,IR,Conf. dr. M.Marin,2
 SDA/ATA/MF,IR,Asist. dr. T. Ivascu/Conf. dr. M.Dragan/Conf. Dr. M. Erascu ,2
 PI,IR,Dr. M. Iordan,2
 LIMBA ENGLEZA,IR,Lect. Dr. O.Ivan,2
-DISCIPLINE COMPLEMENTARE,PROFESOR-COMPLEMENTARE,IR,2,
+DISCIPLINE COMPLEMENTARE,IR,PROFESOR-COMPLEMENTARE,2,
 SO I,IA,Conf. dr. F. Fortis,2
 BD I,IA,Conf. dr. D.Pop,2
 P3,IA,Conf. dr. F.Micota,2
@@ -35,7 +35,7 @@ TGC,IA,Lect.dr. M.Chis,2
 SDA/TC,IA,Asist. Drd. T. Ivascu/Conf. dr. M.Dragan,2
 PI,IA,Ing. I. Tarba,2
 LIMBA ENGLEZA,IA,Lect. Dr. O.Ivan ,2
-DISCIPLINE COMPLEMENTARE,PROFESOR-COMPLEMENTARE,IA,2,
+DISCIPLINE COMPLEMENTARE,IA,PROFESOR-COMPLEMENTARE,2,
 OS,IE,Conf. dr. C. Pungila,2
 DB I,IE,Lect.dr. I. Dragan,2
 P3,IE,Asist. Dr. A. Spataru,2
@@ -43,7 +43,7 @@ GTC,IE,Lect.dr. I.Dramnesc,2
 ADS/FMSD,IE,Conf. Dr. M. Marin/Lect.dr. M.Erascu,2
 IP,IE,Inf. Stinga Oana,2
 ENGLISH LANGUAGE,IE,Lect. Dr. O.Ivan,2
-TRANSVERSAL COMPETENCES,PROFESOR-COMPLEMENTARE,IE,2,
+TRANSVERSAL COMPETENCES,IE,PROFESOR-COMPLEMENTARE,2,
 ASD I,IR,Prof. dr. D. Zaharie,1
 P1,IR,Conf.dr. C. Bonchis,1
 LC,IR,Conf.dr. A. Craciun,1
