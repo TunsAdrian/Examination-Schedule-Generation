@@ -1,67 +1,67 @@
 Subject,Section,Teacher,Year
-IA,IR,Prof. Dr. V. Negru,3
-TW,IR,Lect.dr. G.Iuhasz,3
-ED,IR,Lect. dr.L.Tanasie,3
-MPP/SP,IR,Lect.dr.A.Popovici/Conf. dr. D. Pop,3
-MPI/ITB/TSS,IR,Ing.dr.l.Coroban/Lect. dr. C. Cira/Ing. R. Seculi,3
-MLL,IR,Lect.dr. L.Tanasie,3
-DISCIPLINE COMPLEMENTARE,IR,PROFESOR-COMPLEMENTARE,3,
-SP,IA,Conf. dr. D. Pop,3
-TW,IA,Lect.dr. G.Iuhasz,3
-IA3,IA,Prof.dr. V. Negru,3
-PS/MPP,IA,Lect. dr. M. Gaianu/Lect.dr.A.Popovici,3
-MPI/TSS,IA,Asist. dr. L. Coroban/Ing. R. Seculi,3
-MLL,IA,Conf.dr. V. Iordan,3
-DISCIPLINE COMPLEMENTARE,IA,PROFESOR-COMPLEMENTARE,3,
-AI,IE,Lect. dr. H. Popa Andreescu,3
-WT,IE,Lect. dr.G.Iuhasz,3
-DE,IE,Conf.dr. E. Kaslik,3
-APP,IE,Dr. A. Copie,3
-DP/IB/IT,IE,Conf. dr. F.Micota/Lect. dr. C. Cira/Conf. dr. C.Bonchis,3
-MBT,IE,Conf.dr. M.Erascu,3
-TRANSVERSAL COMPONENTS,IE,PROFESOR-COMPLEMENTARE,3,
-SO I,IR,Conf. dr. F. Fortis,2
-BD I,IR,Conf. dr. D.Pop,2
-P3,IR,Conf. dr. F.Micota,2
-TGC,IR,Conf. dr. M.Marin,2
-SDA/ATA/MF,IR,Asist. dr. T. Ivascu/Conf. dr. M.Dragan/Conf. Dr. M. Erascu ,2
-PI,IR,Dr. M. Iordan,2
-LIMBA ENGLEZA,IR,Lect. Dr. O.Ivan,2
-DISCIPLINE COMPLEMENTARE,IR,PROFESOR-COMPLEMENTARE,2,
-SO I,IA,Conf. dr. F. Fortis,2
-BD I,IA,Conf. dr. D.Pop,2
-P3,IA,Conf. dr. F.Micota,2
-TGC,IA,Lect.dr. M.Chis,2
-SDA/TC,IA,Asist. Drd. T. Ivascu/Conf. dr. M.Dragan,2
-PI,IA,Ing. I. Tarba,2
-LIMBA ENGLEZA,IA,Lect. Dr. O.Ivan ,2
-DISCIPLINE COMPLEMENTARE,IA,PROFESOR-COMPLEMENTARE,2,
-OS,IE,Conf. dr. C. Pungila,2
-DB I,IE,Lect.dr. I. Dragan,2
-P3,IE,Asist. Dr. A. Spataru,2
-GTC,IE,Lect.dr. I.Dramnesc,2
-ADS/FMSD,IE,Conf. Dr. M. Marin/Lect.dr. M.Erascu,2
-IP,IE,Inf. Stinga Oana,2
-ENGLISH LANGUAGE,IE,Lect. Dr. O.Ivan,2
-TRANSVERSAL COMPETENCES,IE,PROFESOR-COMPLEMENTARE,2,
-ASD I,IR,Prof. dr. D. Zaharie,1
-P1,IR,Conf.dr. C. Bonchis,1
-LC,IR,Conf.dr. A. Craciun,1
-FM,IR,Lect.dr. M. Chis ,1
-AC,IR,Lect.dr.L.Mafteiu-Scai,1
-LIMBA ENGLEZA,IR,Dr. O.Ivan,1
-Etica,IR,Lect.dr.L.Mafteiu-Scai,1
-ASD I,IA,Conf.dr.D. Onchis,1
-P1,IA,Conf.dr. C. Bonchis,1
-LC,IA,Asist.dr. A.Fortis,1
-FM,IA,Lect.dr. M. Chis,1
-AC,IA,Lect.dr. A.Popovici,1
-LIMBA ENGLEZA,IA,Dr. O.Ivan,1
-Etica,IA,Lect.dr.L.Mafteiu-Scai,1
-ASD I,IE,Prof.dr. G. Istrate,1
-P1,IE,Asist.dr. A.Spataru,1
-LCS,IE,Conf. dr. A. Craciun,1
-FM,IE,Lect. dr. M. Chis,1
-CS,IE,Lect.dr. C. Cira,1
-ENGLISH LANGUAGE,IE,Dr. O.Ivan,1
-Etica,IE,Conf. dr. A. Craciun,1
+IA,IR,V. Negru,3
+TW,IR,G. Iuhasz,3
+ED,IR,L. Tanasie,3
+MPP/SP,IR,A. Popovici/ D. Pop,3
+MPI/ITB/TSS,IR,l. Coroban/ C. Cira/R. Seculi,3
+MLL,IR,L. Tanasie,3
+DISCIPLINE COMPLEMENTARE,IR,PROFESOR-COMPLEMENTARE,3
+SP,IA,D. Pop,3
+TW,IA,G. Iuhasz,3
+IA3,IA,V. Negru,3
+PS/MPP,IA,M. Gaianu/ A. Popovici,3
+MPI/TSS,IA,L. Coroban/R. Seculi,3
+MLL,IA,V. Iordan,3
+DISCIPLINE COMPLEMENTARE,IA,PROFESOR-COMPLEMENTARE,3
+IA,IE,H. Popa Andreescu,3
+TW,IE,G. Iuhasz,3
+ED,IE,E. Kaslik,3
+APP,IE,A. Copie,3
+DP/IB/IT,IE,F. Micota/ C. Cira/ C. Bonchis,3
+MLL,IE,M. Erascu,3
+DISCIPLINE COMPLEMENTARE,IE,PROFESOR-COMPLEMENTARE,3
+SOI,IR,F. Fortis,2
+BDI,IR,D. Pop,2
+P3,IR,F. Micota,2
+TGC,IR,M. Marin,2
+SDA/ATA/MF,IR,T. Ivascu/ M. Dragan/ M. Erascu ,2
+PI,IR,M. Iordan,2
+LIMBA ENGLEZA,IR,O. Ivan,2
+DISCIPLINE COMPLEMENTARE,IR,PROFESOR-COMPLEMENTARE,2
+SOI,IA,F. Fortis,2
+BDI,IA,D. Pop,2
+P3,IA,F. Micota,2
+TGC,IA,M.Chis,2
+SDA/TC,IA,T. Ivascu/ M. Dragan,2
+PI,IA,I. Tarba,2
+LIMBA ENGLEZA,IA,O. Ivan ,2
+DISCIPLINE COMPLEMENTARE,IA,PROFESOR-COMPLEMENTARE,2
+SOI,IE,C. Pungila,2
+BDI,IE,I. Dragan,2
+P3,IE,A. Spataru,2
+TGC,IE,I. Dramnesc,2
+SDA/FMSD,IE,M. Marin/ M. Erascu,2
+PI,IE,Stinga Oana,2
+LIMBA ENGLEZA,IE,O. Ivan,2
+DISCIPLINE COMPLEMENTARE,IE,PROFESOR-COMPLEMENTARE,2
+ASDI,IR,D. Zaharie,1
+P1,IR,C. Bonchis,1
+LC,IR,A. Craciun,1
+FM,IR,M. Chis ,1
+AC,IR,L. Mafteiu-Scai,1
+LIMBA ENGLEZA,IR,O. Ivan,1
+Etica,IR,L. Mafteiu-Scai,1
+ASDI,IA,D. Onchis,1
+P1,IA,C. Bonchis,1
+LC,IA,A. Fortis,1
+FM,IA,M. Chis,1
+AC,IA,A. Popovici,1
+LIMBA ENGLEZA,IA,O. Ivan,1
+Etica,IA,L. Mafteiu-Scai,1
+ASDI,IE,G. Istrate,1
+P1,IE,A. Spataru,1
+LC,IE,A. Craciun,1
+FM,IE,M. Chis,1
+AC,IE,C. Cira,1
+LIMBA ENGLEZA,IE,O. Ivan,1
+Etica,IE,A. Craciun,1
