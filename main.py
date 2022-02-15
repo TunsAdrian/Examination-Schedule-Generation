@@ -5,50 +5,69 @@ import tabulate
 # TODO: take from GUI
 timePerExam = 2
 examsStartingHour = 8
-numberOfTimeSlots = 2
-numberOfDays = 7
+timeslotsNumber = 3
+daysNumber = 10
 ###
 
 coursesDict = {}
 slotDict = {}
 
 
-def validate_input(input_data):
-    if input_data.find('/') != -1 or input_data.find('~') != -1:
-        raise Exception("Input data can't contain the following characters: '/' '~'")
+def validate_input(row_data):
+    if ' '.join(row_data).find('~') != -1:
+        raise Exception("Input data can't contain the following characters: '~'")
+    if row_data[1].find('/') != -1 or row_data[3].find('/') != -1:
+        raise Exception("Section and Year can't contain the following characters: '/'")
 
 
-# TODO: replace with file containing all exams
-with open('Exams-proba.csv', 'r') as file:
+def create_courses_dict(subject, section, teacher, year):
+    # strip leading/trailing spaces and replace the rest with "-"
+    subject = ' '.join(subject.split()).replace(' ', '-')
+    section = ' '.join(section.split()).replace(' ', '-')
+    teacher = ' '.join(teacher.split()).replace(' ', '-')
+    year = ' '.join(year.split()).replace(' ', '-')
+
+    # create a dict with key made from exam subject name, teacher and year and value from a list containing the
+    # section and year
+    # e.g. key: Subject~Professor~Year, value: [Specialization1Year, Specialization2Year]
+    if subject + '~' + teacher + '~' + year in coursesDict.keys():
+        coursesDict[subject + '~' + teacher + '~' + year]["specializations"].append(section + year)
+    else:
+        coursesDict[subject + '~' + teacher + '~' + year] = {"specializations": [section + year]}
+
+
+with open('Exams.csv', 'r') as file:
     csvReader = csv.reader(file, delimiter=',')
     header = next(csvReader)
 
-    # strip leading/trailing spaces and replace the rest with "-"
     for row in csvReader:
-        validate_input(' '.join(row))
-        row[0] = ' '.join(row[0].split()).replace(' ', '-')
-        row[1] = ' '.join(row[1].split()).replace(' ', '-')
-        row[2] = ' '.join(row[2].split()).replace(' ', '-')
-        row[3] = ' '.join(row[3].split()).replace(' ', '-')
+        validate_input(row)
 
-        # create a dict with key made from exam subject name, teacher and year and value from a list containing the
-        # section and year
-        # e.g. key: Subject~Professor~Year, value: [Specialization1Year, Specialization2Year]
-        if row[0] + '~' + row[2] + '~' + row[3] in coursesDict.keys():
-            coursesDict[row[0] + '~' + row[2] + '~' + row[3]]["specializations"].append(row[1] + row[3])
+        # check if subject and teacher fields have '/' (denoting packages of optional subjects) and register each
+        # subject-teacher entry
+        if row[0].find('/') != -1 and row[2].find('/') != -1:
+            optionalSubjects = row[0].split('/')
+            optionalSubjectsTeachers = row[2].split('/')
+
+            if len(optionalSubjects) != len(optionalSubjectsTeachers):
+                raise Exception(f"{row[0]} doesn't have teachers specified for all subjects.")
+
+            for i in range(len(optionalSubjects)):
+                create_courses_dict(optionalSubjects[i], row[1], optionalSubjectsTeachers[i], row[3])
+
         else:
-            coursesDict[row[0] + '~' + row[2] + '~' + row[3]] = {"specializations": [row[1] + row[3]]}
+            create_courses_dict(row[0], row[1], row[2], row[3])
 
 # create a dict with key from exam name, teacher, year and values from list of same key with nr of days and of timeslots
 for course in coursesDict:
     for specialization in coursesDict[course]["specializations"]:
         # e.g. key: Subject~Professor~Year/SpecializationYear, value: list with: [key + /day/timeslot]
         slotDict[course + '/' + specialization] = [Bool(course + '/' + specialization + '/' + str(i) + '/' + str(j))
-                                                   for i in range(numberOfDays)
-                                                   for j in range(numberOfTimeSlots)]
+                                                   for i in range(daysNumber)
+                                                   for j in range(timeslotsNumber)]
 
 # compute total number of exam slots
-numberOfSlots = numberOfDays * numberOfTimeSlots
+numberOfSlots = daysNumber * timeslotsNumber
 
 solver = Solver()
 
@@ -79,10 +98,10 @@ for slotEntry in slotDict:
         for remaining in slotDict:
             # check specialization name
             if remaining.split('/')[1] == slotEntry.split('/')[1] and slotEntry != remaining:
-                y = int(i / numberOfTimeSlots)
-                y = y * numberOfTimeSlots
+                y = int(i / timeslotsNumber)
+                y = y * timeslotsNumber
 
-                for j in range(y, y + numberOfTimeSlots):
+                for j in range(y, y + timeslotsNumber):
                     solver.add(Implies(slotDict[slotEntry][i], Not(slotDict[remaining][j])))
 print("4. Ensured a specialization will have at most one exam in a day")
 
@@ -92,10 +111,10 @@ for slotEntry in slotDict:
         for remaining in slotDict:
             # check teacher name
             if remaining.split('/')[0].split('~')[1] == slotEntry.split('/')[0].split('~')[1] and slotEntry != remaining:
-                y = int(i / numberOfTimeSlots)
-                y = y * numberOfTimeSlots
+                y = int(i / timeslotsNumber)
+                y = y * timeslotsNumber
 
-                for j in range(y, y + numberOfTimeSlots):
+                for j in range(y, y + timeslotsNumber):
                     # check if current entry has the same day and hour as the others, and that it doesn't have
                     # the same exam name
                     if slotDict[slotEntry][i].__str__().split('/')[0].split('~')[0] != \
@@ -107,13 +126,13 @@ for slotEntry in slotDict:
                         solver.add(Implies(slotDict[slotEntry][i], Not(slotDict[remaining][j])))
 print("5. Ensured a teacher can have at most one exam in a timeslot")
 
-# TODO: add constraint for having days between exams and for having options for packets of optionals
+# TODO: add constraint for having days between exams
 
 finalSchedule = []
 timeDict = {}
 
 # create a dictionary of timeslot keys and corresponding hours
-for i in range(numberOfTimeSlots):
+for i in range(timeslotsNumber):
     timeDict[i] = f'{(examsStartingHour % 24):02d}:00 - {((examsStartingHour + timePerExam) % 24):02d}:00'
     examsStartingHour += timePerExam
 
@@ -141,7 +160,7 @@ else:
 
 if finalSchedule:
     # sort final schedule by day, and then by specialization year
-    finalSchedule.sort(key=lambda x: (x[4], x[2]))
+    finalSchedule.sort(key=lambda x: (int(x[4]), int(x[2])))
     finalSchedule.insert(0, ["Exam-Name", "Specialization", "Year", "Teacher", "Day", "Hour"])
     print(tabulate.tabulate(finalSchedule, headers="firstrow", tablefmt="fancy_grid"))
 else:
