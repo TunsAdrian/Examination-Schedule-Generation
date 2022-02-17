@@ -4,6 +4,7 @@ import tabulate
 import tkinter
 from tkinter import *
 from tkinter import filedialog
+from tkinter.messagebox import showinfo
 import os
 
 
@@ -21,71 +22,52 @@ def browse():
     fileName = filename
     return fileName
 
-def generate_examination_schedule():
-    timePerExam = int(e1.get())
-    examsStartingHour = int(e2.get())
-    timeslotsNumber = int(e3.get())
-    daysNumber = int(e4.get())
 
+def generate_examination_schedule():
     coursesDict = {}
     slotDict = {}
 
+    timePerExam = int(e1.get())
+    examsStartingHour = int(e2.get())
+    numberOfTimeSlots = int(e3.get())
+    numberOfDays = int(e4.get())
 
-    def validate_input(row_data):
-        if ' '.join(row_data).find('~') != -1:
-            raise Exception("Input data can't contain the following characters: '~'")
-        if row_data[1].find('/') != -1 or row_data[3].find('/') != -1:
-            raise Exception("Section and Year can't contain the following characters: '/'")
-
-
-    def create_courses_dict(subject, section, teacher, year):
-        # strip leading/trailing spaces and replace the rest with "-"
-        subject = ' '.join(subject.split()).replace(' ', '-')
-        section = ' '.join(section.split()).replace(' ', '-')
-        teacher = ' '.join(teacher.split()).replace(' ', '-')
-        year = ' '.join(year.split()).replace(' ', '-')
-
-        # create a dict with key made from exam subject name, teacher and year and value from a list containing the
-        # section and year
-        # e.g. key: Subject~Professor~Year, value: [Specialization1Year, Specialization2Year]
-        if subject + '~' + teacher + '~' + year in coursesDict.keys():
-            coursesDict[subject + '~' + teacher + '~' + year]["specializations"].append(section + year)
-        else:
-            coursesDict[subject + '~' + teacher + '~' + year] = {"specializations": [section + year]}
+    def validate_input(input_data):
+        if input_data.find('/') != -1 or input_data.find('~') != -1:
+            raise Exception("Input data can't contain the following characters: '/' '~'")
 
 
+    # TODO: replace with file containing all exams
     with open(fileName, 'r') as file:
         csvReader = csv.reader(file, delimiter=',')
         header = next(csvReader)
 
+        # strip leading/trailing spaces and replace the rest with "-"
         for row in csvReader:
-            validate_input(row)
+            validate_input(' '.join(row))
+            row[0] = ' '.join(row[0].split()).replace(' ', '-')
+            row[1] = ' '.join(row[1].split()).replace(' ', '-')
+            row[2] = ' '.join(row[2].split()).replace(' ', '-')
+            row[3] = ' '.join(row[3].split()).replace(' ', '-')
 
-            # check if subject and teacher fields have '/' (denoting packages of optional subjects) and register each
-            # subject-teacher entry
-            if row[0].find('/') != -1 and row[2].find('/') != -1:
-                optionalSubjects = row[0].split('/')
-                optionalSubjectsTeachers = row[2].split('/')
-
-                if len(optionalSubjects) != len(optionalSubjectsTeachers):
-                    raise Exception(f"{row[0]} doesn't have teachers specified for all subjects.")
-
-                for i in range(len(optionalSubjects)):
-                    create_courses_dict(optionalSubjects[i], row[1], optionalSubjectsTeachers[i], row[3])
-
+            # create a dict with key made from exam subject name, teacher and year and value from a list containing the
+            # section and year
+            # e.g. key: Subject~Professor~Year, value: [Specialization1Year, Specialization2Year]
+            if row[0] + '~' + row[2] + '~' + row[3] in coursesDict.keys():
+                coursesDict[row[0] + '~' + row[2] + '~' + row[3]]["specializations"].append(row[1] + row[3])
             else:
-                create_courses_dict(row[0], row[1], row[2], row[3])
+                coursesDict[row[0] + '~' + row[2] + '~' + row[3]] = {"specializations": [row[1] + row[3]]}
 
     # create a dict with key from exam name, teacher, year and values from list of same key with nr of days and of timeslots
     for course in coursesDict:
         for specialization in coursesDict[course]["specializations"]:
             # e.g. key: Subject~Professor~Year/SpecializationYear, value: list with: [key + /day/timeslot]
             slotDict[course + '/' + specialization] = [Bool(course + '/' + specialization + '/' + str(i) + '/' + str(j))
-                                                       for i in range(daysNumber)
-                                                       for j in range(timeslotsNumber)]
+                                                       for i in range(numberOfDays)
+                                                       for j in range(numberOfTimeSlots)]
 
     # compute total number of exam slots
-    numberOfSlots = daysNumber * timeslotsNumber
+    numberOfSlots = numberOfDays * numberOfTimeSlots
 
     solver = Solver()
 
@@ -116,10 +98,10 @@ def generate_examination_schedule():
             for remaining in slotDict:
                 # check specialization name
                 if remaining.split('/')[1] == slotEntry.split('/')[1] and slotEntry != remaining:
-                    y = int(i / timeslotsNumber)
-                    y = y * timeslotsNumber
+                    y = int(i / numberOfTimeSlots)
+                    y = y * numberOfTimeSlots
 
-                    for j in range(y, y + timeslotsNumber):
+                    for j in range(y, y + numberOfTimeSlots):
                         solver.add(Implies(slotDict[slotEntry][i], Not(slotDict[remaining][j])))
     print("4. Ensured a specialization will have at most one exam in a day")
 
@@ -129,10 +111,10 @@ def generate_examination_schedule():
             for remaining in slotDict:
                 # check teacher name
                 if remaining.split('/')[0].split('~')[1] == slotEntry.split('/')[0].split('~')[1] and slotEntry != remaining:
-                    y = int(i / timeslotsNumber)
-                    y = y * timeslotsNumber
+                    y = int(i / numberOfTimeSlots)
+                    y = y * numberOfTimeSlots
 
-                    for j in range(y, y + timeslotsNumber):
+                    for j in range(y, y + numberOfTimeSlots):
                         # check if current entry has the same day and hour as the others, and that it doesn't have
                         # the same exam name
                         if slotDict[slotEntry][i].__str__().split('/')[0].split('~')[0] != \
@@ -144,13 +126,13 @@ def generate_examination_schedule():
                             solver.add(Implies(slotDict[slotEntry][i], Not(slotDict[remaining][j])))
     print("5. Ensured a teacher can have at most one exam in a timeslot")
 
-    # TODO: add constraint for having days between exams
+    # TODO: add constraint for having days between exams and for having options for packets of optionals
 
     finalSchedule = []
     timeDict = {}
 
     # create a dictionary of timeslot keys and corresponding hours
-    for i in range(timeslotsNumber):
+    for i in range(numberOfTimeSlots):
         timeDict[i] = f'{(examsStartingHour % 24):02d}:00 - {((examsStartingHour + timePerExam) % 24):02d}:00'
         examsStartingHour += timePerExam
 
@@ -186,7 +168,6 @@ def generate_examination_schedule():
         print("---A proper schedule could not be generated for the input data---")
     with open('exams-schedule.txt', 'w') as file:
         file.write(tabulate.tabulate(finalSchedule,headers="firstrow", tablefmt="fancy_grid"))
-
 
 def deleteFile():
     if os.path.exists("exams-schedule.txt"):
@@ -250,4 +231,9 @@ tkinter.Button(window, text="Delete file", command = deleteFile).grid(row=15)
 button_exit.grid(column=1, row=17)
 window.mainloop()
 
+# TODO: take from GUI
 
+###
+
+
+# TODO: use in GUI for generating file with schedule
