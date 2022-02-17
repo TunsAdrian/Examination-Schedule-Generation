@@ -1,42 +1,51 @@
 from z3 import *
 import csv
 import tabulate
-import tkinter
 from tkinter import *
 from tkinter import filedialog
+from tkinter.scrolledtext import ScrolledText
 import os
 
 
+def browse(file_path):
+    filename = filedialog.askopenfilename(initialdir="/", title="Select a File",
+                                          filetypes=(("Text files", "*.csv*"), ("all files", "*.*")))
 
-def browse():
-    global fileName
-    filename = filedialog.askopenfilename(initialdir="/",
-                                          title="Select a File",
-                                          filetypes=(("Text files",
-                                                      "*.csv*"),
-                                                     ("all files",
-                                                      "*.*")), )
+    file_path.set(filename)
 
-    label_file_explorer.configure(text="File Opened: " + filename)
-    fileName = filename
-    return fileName
 
-def generate_examination_schedule():
-    timePerExam = int(e1.get())
-    examsStartingHour = int(e2.get())
-    timeslotsNumber = int(e3.get())
-    daysNumber = int(e4.get())
+def save_schedule():
+    f = filedialog.asksaveasfile(mode='w', defaultextension='.txt')
+    if f is None:
+        return
 
-    coursesDict = {}
-    slotDict = {}
+    text2save = str(resultSection.get(0.0, END))
+    f.write(text2save)
+    f.close()
 
+
+def reset_data():
+    pass
+
+
+def generate_examination_schedule(time_per_exam, exams_starting_hour, timeslots_number, days_number, file_path):
+    try:
+        time_per_exam = int(time_per_exam.get())
+        exams_starting_hour = int(exams_starting_hour.get())
+        timeslots_number = int(timeslots_number.get())
+        days_number = int(days_number.get())
+    except ValueError:
+        resultSection.insert(END, "The input values must be whole numbers")
+        return
+
+    courses_dict = {}
+    slot_dict = {}
 
     def validate_input(row_data):
         if ' '.join(row_data).find('~') != -1:
             raise Exception("Input data can't contain the following characters: '~'")
         if row_data[1].find('/') != -1 or row_data[3].find('/') != -1:
             raise Exception("Section and Year can't contain the following characters: '/'")
-
 
     def create_courses_dict(subject, section, teacher, year):
         # strip leading/trailing spaces and replace the rest with "-"
@@ -48,206 +57,188 @@ def generate_examination_schedule():
         # create a dict with key made from exam subject name, teacher and year and value from a list containing the
         # section and year
         # e.g. key: Subject~Professor~Year, value: [Specialization1Year, Specialization2Year]
-        if subject + '~' + teacher + '~' + year in coursesDict.keys():
-            coursesDict[subject + '~' + teacher + '~' + year]["specializations"].append(section + year)
+        if subject + '~' + teacher + '~' + year in courses_dict.keys():
+            courses_dict[subject + '~' + teacher + '~' + year]["specializations"].append(section + year)
         else:
-            coursesDict[subject + '~' + teacher + '~' + year] = {"specializations": [section + year]}
+            courses_dict[subject + '~' + teacher + '~' + year] = {"specializations": [section + year]}
 
+    try:
+        with open(file_path, 'r') as file:
+            csv_reader = csv.reader(file, delimiter=',')
+            header = next(csv_reader)
 
-    with open(fileName, 'r') as file:
-        csvReader = csv.reader(file, delimiter=',')
-        header = next(csvReader)
+            for row in csv_reader:
+                validate_input(row)
 
-        for row in csvReader:
-            validate_input(row)
+                # check if subject and teacher fields have '/' (denoting packages of optional subjects) and register each
+                # subject-teacher entry
+                if row[0].find('/') != -1 and row[2].find('/') != -1:
+                    optional_subjects = row[0].split('/')
+                    optional_subjects_teachers = row[2].split('/')
 
-            # check if subject and teacher fields have '/' (denoting packages of optional subjects) and register each
-            # subject-teacher entry
-            if row[0].find('/') != -1 and row[2].find('/') != -1:
-                optionalSubjects = row[0].split('/')
-                optionalSubjectsTeachers = row[2].split('/')
+                    if len(optional_subjects) != len(optional_subjects_teachers):
+                        raise Exception(f"{row[0]} doesn't have teachers specified for all subjects.")
 
-                if len(optionalSubjects) != len(optionalSubjectsTeachers):
-                    raise Exception(f"{row[0]} doesn't have teachers specified for all subjects.")
+                    for i in range(len(optional_subjects)):
+                        create_courses_dict(optional_subjects[i], row[1], optional_subjects_teachers[i], row[3])
 
-                for i in range(len(optionalSubjects)):
-                    create_courses_dict(optionalSubjects[i], row[1], optionalSubjectsTeachers[i], row[3])
-
-            else:
-                create_courses_dict(row[0], row[1], row[2], row[3])
+                else:
+                    create_courses_dict(row[0], row[1], row[2], row[3])
+    except FileNotFoundError:
+        resultSection.insert(END, "The file could not be found")
+        return
+    except IOError:
+        resultSection.insert(END, "The file could not be read")
+        return
 
     # create a dict with key from exam name, teacher, year and values from list of same key with nr of days and of timeslots
-    for course in coursesDict:
-        for specialization in coursesDict[course]["specializations"]:
+    for course in courses_dict:
+        for specialization in courses_dict[course]["specializations"]:
             # e.g. key: Subject~Professor~Year/SpecializationYear, value: list with: [key + /day/timeslot]
-            slotDict[course + '/' + specialization] = [Bool(course + '/' + specialization + '/' + str(i) + '/' + str(j))
-                                                       for i in range(daysNumber)
-                                                       for j in range(timeslotsNumber)]
+            slot_dict[course + '/' + specialization] = [
+                Bool(course + '/' + specialization + '/' + str(i) + '/' + str(j))
+                for i in range(days_number)
+                for j in range(timeslots_number)]
 
     # compute total number of exam slots
-    numberOfSlots = daysNumber * timeslotsNumber
+    number_of_slots = days_number * timeslots_number
 
     solver = Solver()
 
     # At most one exam for each course and each specialization taking that course in the whole timetable
-    for slotEntry in slotDict:
-        for i in range(numberOfSlots):
-            for j in range(numberOfSlots):
+    for slotEntry in slot_dict:
+        for i in range(number_of_slots):
+            for j in range(number_of_slots):
                 if i != j:
-                    solver.add(Implies(slotDict[slotEntry][i], Not(slotDict[slotEntry][j])))
+                    solver.add(Implies(slot_dict[slotEntry][i], Not(slot_dict[slotEntry][j])))
     print("1. Ensured at most one exam for each course and specialization")
 
     # At least one exam for each course and each specialization taking that course for all days
-    for slotEntry in slotDict:
-        solver.add(Or([slots for slots in slotDict[slotEntry]]))
+    for slotEntry in slot_dict:
+        solver.add(Or([slots for slots in slot_dict[slotEntry]]))
     print("2. Ensured at least one exam for each course and specialization")
 
     # For all specializations having a specific exam with the same teacher, the exam should be on the same day
-    for slotEntry in slotDict:
-        for i in range(numberOfSlots):
-            for remaining in slotDict:
+    for slotEntry in slot_dict:
+        for i in range(number_of_slots):
+            for remaining in slot_dict:
                 if remaining.split('/')[0] == slotEntry.split('/')[0] and slotEntry != remaining:
-                    solver.add(Implies(slotDict[slotEntry][i], slotDict[remaining][i]))
+                    solver.add(Implies(slot_dict[slotEntry][i], slot_dict[remaining][i]))
     print("3. Ensured all specialization take the exams with same exam name and teacher on the same day")
 
     # At most one exam for a specialization in one day
-    for slotEntry in slotDict:
-        for i in range(numberOfSlots):
-            for remaining in slotDict:
+    for slotEntry in slot_dict:
+        for i in range(number_of_slots):
+            for remaining in slot_dict:
                 # check specialization name
                 if remaining.split('/')[1] == slotEntry.split('/')[1] and slotEntry != remaining:
-                    y = int(i / timeslotsNumber)
-                    y = y * timeslotsNumber
+                    y = int(i / timeslots_number)
+                    y = y * timeslots_number
 
-                    for j in range(y, y + timeslotsNumber):
-                        solver.add(Implies(slotDict[slotEntry][i], Not(slotDict[remaining][j])))
+                    for j in range(y, y + timeslots_number):
+                        solver.add(Implies(slot_dict[slotEntry][i], Not(slot_dict[remaining][j])))
     print("4. Ensured a specialization will have at most one exam in a day")
 
     # At most one exam for a teacher in one timeslot
-    for slotEntry in slotDict:
-        for i in range(numberOfSlots):
-            for remaining in slotDict:
+    for slotEntry in slot_dict:
+        for i in range(number_of_slots):
+            for remaining in slot_dict:
                 # check teacher name
                 if remaining.split('/')[0].split('~')[1] == slotEntry.split('/')[0].split('~')[1] and slotEntry != remaining:
-                    y = int(i / timeslotsNumber)
-                    y = y * timeslotsNumber
+                    y = int(i / timeslots_number)
+                    y = y * timeslots_number
 
-                    for j in range(y, y + timeslotsNumber):
+                    for j in range(y, y + timeslots_number):
                         # check if current entry has the same day and hour as the others, and that it doesn't have
                         # the same exam name
-                        if slotDict[slotEntry][i].__str__().split('/')[0].split('~')[0] != \
-                                slotDict[remaining][j].__str__().split('/')[0].split('~')[0] and \
-                                slotDict[slotEntry][i].__str__().split('/')[2] == \
-                                slotDict[remaining][j].__str__().split('/')[2] and \
-                                slotDict[slotEntry][i].__str__().split('/')[3] == \
-                                slotDict[remaining][j].__str__().split('/')[3]:
-                            solver.add(Implies(slotDict[slotEntry][i], Not(slotDict[remaining][j])))
+                        if slot_dict[slotEntry][i].__str__().split('/')[0].split('~')[0] != \
+                                slot_dict[remaining][j].__str__().split('/')[0].split('~')[0] and \
+                                slot_dict[slotEntry][i].__str__().split('/')[2] == \
+                                slot_dict[remaining][j].__str__().split('/')[2] and \
+                                slot_dict[slotEntry][i].__str__().split('/')[3] == \
+                                slot_dict[remaining][j].__str__().split('/')[3]:
+                            solver.add(Implies(slot_dict[slotEntry][i], Not(slot_dict[remaining][j])))
     print("5. Ensured a teacher can have at most one exam in a timeslot")
 
-    # TODO: add constraint for having days between exams
-
-    finalSchedule = []
-    timeDict = {}
+    final_schedule = []
+    time_dict = {}
 
     # create a dictionary of timeslot keys and corresponding hours
-    for i in range(timeslotsNumber):
-        timeDict[i] = f'{(examsStartingHour % 24):02d}:00 - {((examsStartingHour + timePerExam) % 24):02d}:00'
-        examsStartingHour += timePerExam
+    for i in range(timeslots_number):
+        time_dict[i] = f'{(exams_starting_hour % 24):02d}:00 - {((exams_starting_hour + time_per_exam) % 24):02d}:00'
+        exams_starting_hour += time_per_exam
 
     if solver.check() == sat:
         print('status: sat\n')
         model = solver.model()
 
-        for slotEntry in slotDict:
-            for slot in range(numberOfSlots):
-                if model.evaluate(slotDict[slotEntry][slot]):
-                    resultList = slotDict[slotEntry][slot].__str__().split('/')
-                    keyList = resultList[0].split('~')
+        for slotEntry in slot_dict:
+            for slot in range(number_of_slots):
+                if model.evaluate(slot_dict[slotEntry][slot]):
+                    result_list = slot_dict[slotEntry][slot].__str__().split('/')
+                    key_list = result_list[0].split('~')
 
-                    hourSlot = int(resultList[3])
-                    examDay = str(int(resultList[2]) + 1)
-                    teacherName = keyList[1].replace('-', ' ')
-                    specializationYear = keyList[2]
-                    specializationName = resultList[1].replace(specializationYear, '')
-                    examName = keyList[0].replace('-', ' ')
+                    hour_slot = int(result_list[3])
+                    exam_day = str(int(result_list[2]) + 1)
+                    teacher_name = key_list[1].replace('-', ' ')
+                    specialization_year = key_list[2]
+                    specialization_name = result_list[1].replace(specialization_year, '')
+                    exam_name = key_list[0].replace('-', ' ')
 
-                    finalSchedule.append([examName, specializationName, specializationYear, teacherName,
-                                          examDay, timeDict[hourSlot]])
+                    final_schedule.append([exam_name, specialization_name, specialization_year, teacher_name,
+                                          exam_day, time_dict[hour_slot]])
     else:
         print('status: unsat\n')
 
-    if finalSchedule:
+    if final_schedule:
         # sort final schedule by day, and then by specialization year
-        finalSchedule.sort(key=lambda x: (x[4], x[2]))
-        finalSchedule.insert(0, ["Exam-Name", "Specialization", "Year", "Teacher", "Day", "Hour"])
-        txtarea.insert(END, tabulate.tabulate(finalSchedule, headers="firstrow", tablefmt="fancy_grid"))
-
+        final_schedule.sort(key=lambda x: (x[4], x[2]))
+        final_schedule.insert(0, ["Exam-Name", "Specialization", "Year", "Teacher", "Day", "Hour"])
+        resultSection.insert(END, tabulate.tabulate(final_schedule, headers="firstrow", tablefmt="fancy_grid"))
     else:
         print("---A proper schedule could not be generated for the input data---")
-    with open('exams-schedule.txt', 'w') as file:
-        file.write(tabulate.tabulate(finalSchedule,headers="firstrow", tablefmt="fancy_grid"))
+
+    # with open('exams-schedule.txt', 'w') as file:
+    #     file.write(tabulate.tabulate(finalSchedule,headers="firstrow", tablefmt="fancy_grid"))
 
 
-def deleteFile():
-    if os.path.exists("exams-schedule.txt"):
-        os.remove("exams-schedule.txt")
-    else:
-        print("The file does not exist")
-    txtarea.delete('1.0', END)
-
-window = Tk()
-
-window.title('STAI')
-
-window.geometry("1500x1200")
-
-window.config(background="white")
+window = Tk(className=' Special Topics in Artificial Intelligence')
+window.geometry("1024x600")
 
 # Create a File Explorer label
-label_file_explorer = Label(window,
-                            text="STAI Project",
-                            width=50, height=2,
-                            fg="blue")
+Label(window, text="Select a .csv file containing Exams", background="white").grid(pady=(8, 4), sticky='e')
 
-button_explore = Button(window,
-                        text="Browse Files",
-                        command=browse)
+filePath = StringVar()
+Entry(window, textvariable=filePath, width=36, state=DISABLED).grid(padx=4, pady=4, row=1, sticky='e')
+Button(window, text="Browse", width=16, command=lambda: browse(filePath)).grid(row=1, column=1, sticky='w')
 
-button_exit = Button(window,
-                     text="Exit",
-                     command=exit)
+Label(window, text="Number of days in examination session", background="white").grid(row=2, padx=4, pady=4, sticky='e')
+Label(window, text="Timeslots per day", background="white").grid(row=3, padx=4, pady=4, sticky='e')
+Label(window, text="Time per exam (expressed in hours)", background="white").grid(row=4, padx=4, pady=4, sticky='e')
+Label(window, text="Exams starting hour", background="white").grid(row=5, padx=4, pady=4, sticky='e')
 
-label_file_explorer.grid(column=1, row=1)
+entry1 = Entry(window, width=8)
+entry2 = Entry(window, width=8)
+entry3 = Entry(window, width=8)
+entry4 = Entry(window, width=8)
 
-button_explore.grid(column=1, row=2)
+entry1.grid(row=2, column=1, sticky='w')
+entry2.grid(row=3, column=1, sticky='w')
+entry3.grid(row=4, column=1, sticky='w')
+entry4.grid(row=5, column=1, sticky='w')
 
+Button(window, text='Generate Schedule', width=16,
+       command=lambda: generate_examination_schedule(entry1, entry2, entry3, entry4, filePath.get())).grid(row=6,
+                                                                                                           sticky='e',
+                                                                                                           padx=4,
+                                                                                                           pady=6)
+Button(window, text="Reset Data", width=16, command=reset_data).grid(row=6, column=1, padx=4, pady=6, sticky='w')
 
-tkinter.Label(window,text="Number of days").grid(row=3)
-tkinter.Label(window,text="Time slots per day").grid(row=4)
-tkinter.Label(window,text="Time per exam").grid(row=5)
-tkinter.Label(window,text="Starting hour").grid(row=6)
+# prevent user from typing in the text area
+resultSection = ScrolledText(window, width=125, height=21, state=DISABLED)
+resultSection.grid(row=7, columnspan=2)
 
+Button(window, text="Save Schedule", width=16, command=save_schedule).grid(row=8, columnspan=2, pady=8)
 
-e1 = tkinter.Entry(window)
-e2 = tkinter.Entry(window)
-e3 = tkinter.Entry(window)
-e4 = tkinter.Entry(window)
-
-
-e1.grid(row=3, column=1)
-e2.grid(row=4, column=1)
-e3.grid(row=5, column=1)
-e4.grid(row=6, column=1)
-
-
-tkinter.Button(window, text='Send data', command=generate_examination_schedule).grid(row=7)
-txtarea = Text(window, width=140, height=20)
-txtarea.grid(pady=20)
-
-tkinter.Button(window, text="Save output").grid(row=14)
-tkinter.Button(window, text="Delete file", command = deleteFile).grid(row=15)
-
-button_exit.grid(column=1, row=17)
 window.mainloop()
-
 
