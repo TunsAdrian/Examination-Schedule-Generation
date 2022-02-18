@@ -25,7 +25,7 @@ def save_schedule():
 
 
 def reset_data():
-    pass
+    resultSection.delete('1.0',END)
 
 
 def generate_examination_schedule(time_per_exam, exams_starting_hour, timeslots_number, days_number, file_path):
@@ -186,7 +186,7 @@ def generate_examination_schedule(time_per_exam, exams_starting_hour, timeslots_
                     exam_name = key_list[0].replace('-', ' ')
 
                     final_schedule.append([exam_name, specialization_name, specialization_year, teacher_name,
-                                          exam_day, time_dict[hour_slot]])
+                                           exam_day, time_dict[hour_slot]])
     else:
         print('status: unsat\n')
 
@@ -195,6 +195,7 @@ def generate_examination_schedule(time_per_exam, exams_starting_hour, timeslots_
         final_schedule.sort(key=lambda x: (x[4], x[2]))
         final_schedule.insert(0, ["Exam-Name", "Specialization", "Year", "Teacher", "Day", "Hour"])
         resultSection.insert(END, tabulate.tabulate(final_schedule, headers="firstrow", tablefmt="fancy_grid"))
+        print(tabulate.tabulate(final_schedule))
     else:
         print("---A proper schedule could not be generated for the input data---")
 
@@ -235,7 +236,7 @@ Button(window, text='Generate Schedule', width=16,
 Button(window, text="Reset Data", width=16, command=reset_data).grid(row=6, column=1, padx=4, pady=6, sticky='w')
 
 # prevent user from typing in the text area
-resultSection = ScrolledText(window, width=125, height=21, state=DISABLED)
+resultSection = ScrolledText(window, width=125, height=21)
 resultSection.grid(row=7, columnspan=2)
 
 Button(window, text="Save Schedule", width=16, command=save_schedule).grid(row=8, columnspan=2, pady=8)
