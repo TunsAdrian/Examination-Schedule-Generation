@@ -4,38 +4,19 @@ import tabulate
 from tkinter import *
 from tkinter import filedialog
 from tkinter.scrolledtext import ScrolledText
-import os
 
 
-def browse(file_path):
-    filename = filedialog.askopenfilename(initialdir="/", title="Select a File",
-                                          filetypes=(("Text files", "*.csv*"), ("all files", "*.*")))
+def generate_examination_schedule(days_number, timeslots_number, time_per_exam, exams_starting_hour, file_path):
+    # clear result area
+    resultArea.delete('1.0', END)
 
-    file_path.set(filename)
-
-
-def save_schedule():
-    f = filedialog.asksaveasfile(mode='w', defaultextension='.txt')
-    if f is None:
-        return
-
-    text2save = str(resultSection.get(0.0, END))
-    f.write(text2save)
-    f.close()
-
-
-def reset_data():
-    resultSection.delete('1.0',END)
-
-
-def generate_examination_schedule(time_per_exam, exams_starting_hour, timeslots_number, days_number, file_path):
     try:
+        days_number = int(days_number.get())
+        timeslots_number = int(timeslots_number.get())
         time_per_exam = int(time_per_exam.get())
         exams_starting_hour = int(exams_starting_hour.get())
-        timeslots_number = int(timeslots_number.get())
-        days_number = int(days_number.get())
     except ValueError:
-        resultSection.insert(END, "The input values must be whole numbers")
+        resultArea.insert(END, "All input values must be completed with whole numbers")
         return
 
     courses_dict = {}
@@ -43,8 +24,10 @@ def generate_examination_schedule(time_per_exam, exams_starting_hour, timeslots_
 
     def validate_input(row_data):
         if ' '.join(row_data).find('~') != -1:
+            resultArea.insert(END, "Input data can't contain the following characters: '~'")
             raise Exception("Input data can't contain the following characters: '~'")
         if row_data[1].find('/') != -1 or row_data[3].find('/') != -1:
+            resultArea.insert(END, "Section and Year can't contain the following characters: '/'")
             raise Exception("Section and Year can't contain the following characters: '/'")
 
     def create_courses_dict(subject, section, teacher, year):
@@ -85,10 +68,10 @@ def generate_examination_schedule(time_per_exam, exams_starting_hour, timeslots_
                 else:
                     create_courses_dict(row[0], row[1], row[2], row[3])
     except FileNotFoundError:
-        resultSection.insert(END, "The file could not be found")
+        resultArea.insert(END, "The .csv file containing the exams could not be found")
         return
     except IOError:
-        resultSection.insert(END, "The file could not be read")
+        resultArea.insert(END, "The file could not be read")
         return
 
     # create a dict with key from exam name, teacher, year and values from list of same key with nr of days and of timeslots
@@ -194,15 +177,34 @@ def generate_examination_schedule(time_per_exam, exams_starting_hour, timeslots_
         # sort final schedule by day, and then by specialization year
         final_schedule.sort(key=lambda x: (x[4], x[2]))
         final_schedule.insert(0, ["Exam-Name", "Specialization", "Year", "Teacher", "Day", "Hour"])
-        resultSection.insert(END, tabulate.tabulate(final_schedule, headers="firstrow", tablefmt="fancy_grid"))
-        print(tabulate.tabulate(final_schedule))
+        resultArea.insert(END, tabulate.tabulate(final_schedule, headers="firstrow", tablefmt="fancy_grid"))
+        print(tabulate.tabulate(final_schedule, headers="firstrow", tablefmt="fancy_grid"))
     else:
+        resultArea.insert(END, "---A proper schedule could not be generated for the input data---")
         print("---A proper schedule could not be generated for the input data---")
 
-    # with open('exams-schedule.txt', 'w') as file:
-    #     file.write(tabulate.tabulate(finalSchedule,headers="firstrow", tablefmt="fancy_grid"))
+
+def browse(file_path):
+    filename = filedialog.askopenfilename(initialdir="/", title="Select a File",
+                                          filetypes=(("Text files", "*.csv*"), ("all files", "*.*")))
+    file_path.set(filename)
 
 
+def save_schedule():
+    f = filedialog.asksaveasfile(mode='w', defaultextension='.txt')
+    if f is None:
+        return
+
+    schedule_result = str(resultArea.get(1.0, END))
+    f.write(schedule_result)
+    f.close()
+
+
+def reset_data():
+    resultArea.delete('1.0', END)
+
+
+# GUI program part
 window = Tk(className=' Special Topics in Artificial Intelligence')
 window.geometry("1024x600")
 
@@ -236,8 +238,8 @@ Button(window, text='Generate Schedule', width=16,
 Button(window, text="Reset Data", width=16, command=reset_data).grid(row=6, column=1, padx=4, pady=6, sticky='w')
 
 # prevent user from typing in the text area
-resultSection = ScrolledText(window, width=125, height=21)
-resultSection.grid(row=7, columnspan=2)
+resultArea = ScrolledText(window, width=125, height=21)
+resultArea.grid(row=7, columnspan=2)
 
 Button(window, text="Save Schedule", width=16, command=save_schedule).grid(row=8, columnspan=2, pady=8)
 
