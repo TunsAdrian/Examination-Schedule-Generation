@@ -156,7 +156,7 @@ else:
 
 if final_schedule:
     # sort final schedule by day, and then by specialization year
-    final_schedule.sort(key=lambda x: (x[4], x[2]))
+    final_schedule.sort(key=lambda x: (int(x[4]), int(x[2])))
     final_schedule.insert(0, ["Exam-Name", "Specialization", "Year", "Teacher", "Day", "Hour"])
 
     print(tabulate.tabulate(final_schedule, headers="firstrow", tablefmt="fancy_grid"))
