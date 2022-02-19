@@ -48,7 +48,7 @@ def generate_examination_schedule(days_number, timeslots_number, time_per_exam, 
     try:
         with open(file_path, 'r') as file:
             csv_reader = csv.reader(file, delimiter=',')
-            header = next(csv_reader)
+            next(csv_reader)
 
             for row in csv_reader:
                 validate_input(row)
@@ -183,21 +183,28 @@ def generate_examination_schedule(days_number, timeslots_number, time_per_exam, 
         resultArea.insert(END, "---A proper schedule could not be generated for the input data---")
         print("---A proper schedule could not be generated for the input data---")
 
+    # add space for consecutive application runs
+    print("\n\n")
+
 
 def browse(file_path):
     filename = filedialog.askopenfilename(initialdir="/", title="Select a File",
-                                          filetypes=(("Text files", "*.csv*"), ("all files", "*.*")))
+                                          filetypes=(("CSV files", "*.csv*"), ("all files", "*.*")))
     file_path.set(filename)
 
 
 def save_schedule():
-    f = filedialog.asksaveasfile(mode='w', defaultextension='.txt')
-    if f is None:
+    file_path = filedialog.asksaveasfilename(defaultextension='.txt',
+                                             filetypes=(("Text files", "*.txt"), ("all files", "*.*")))
+    if file_path is None:
         return
 
-    schedule_result = str(resultArea.get(1.0, END))
-    f.write(schedule_result)
-    f.close()
+    try:
+        with open(file_path, 'w', encoding='UTF-8') as file:
+            schedule_result = resultArea.get(1.0, END)
+            file.write(schedule_result)
+    except IOError:
+        resultArea.insert(0.0, "Result could not be saved")
 
 
 def reset_data():
@@ -244,4 +251,3 @@ resultArea.grid(row=7, columnspan=2)
 Button(window, text="Save Schedule", width=16, command=save_schedule).grid(row=8, columnspan=2, pady=8)
 
 window.mainloop()
-
