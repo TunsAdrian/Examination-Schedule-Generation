@@ -95,11 +95,15 @@ def generate_examination_schedule(days_number, timeslots_number, time_per_exam, 
                 if i != j:
                     solver.add(Implies(slot_dict[slotEntry][i], Not(slot_dict[slotEntry][j])))
     print("1. Ensured at most one exam for each course and specialization")
+    resultArea.insert(END, "1. Ensured at most one exam for each course and specialization\n")
+    resultArea.update()
 
     # At least one exam for each course and each specialization taking that course for all days
     for slotEntry in slot_dict:
         solver.add(Or([slots for slots in slot_dict[slotEntry]]))
     print("2. Ensured at least one exam for each course and specialization")
+    resultArea.insert(END, "2. Ensured at least one exam for each course and specialization\n")
+    resultArea.update()
 
     # For all specializations having a specific exam with the same teacher, the exam should be on the same day
     for slotEntry in slot_dict:
@@ -108,6 +112,8 @@ def generate_examination_schedule(days_number, timeslots_number, time_per_exam, 
                 if remaining.split('/')[0] == slotEntry.split('/')[0] and slotEntry != remaining:
                     solver.add(Implies(slot_dict[slotEntry][i], slot_dict[remaining][i]))
     print("3. Ensured all specialization take the exams with same exam name and teacher on the same day")
+    resultArea.insert(END, "3. Ensured all specialization take the exams with same exam name and teacher on the same day\n")
+    resultArea.update()
 
     # At most one exam for a specialization in one day
     for slotEntry in slot_dict:
@@ -121,6 +127,8 @@ def generate_examination_schedule(days_number, timeslots_number, time_per_exam, 
                     for j in range(y, y + timeslots_number):
                         solver.add(Implies(slot_dict[slotEntry][i], Not(slot_dict[remaining][j])))
     print("4. Ensured a specialization will have at most one exam in a day")
+    resultArea.insert(END, "4. Ensured a specialization will have at most one exam in a day\n")
+    resultArea.update()
 
     # At most one exam for a teacher in one timeslot
     for slotEntry in slot_dict:
@@ -142,6 +150,8 @@ def generate_examination_schedule(days_number, timeslots_number, time_per_exam, 
                                 slot_dict[remaining][j].__str__().split('/')[3]:
                             solver.add(Implies(slot_dict[slotEntry][i], Not(slot_dict[remaining][j])))
     print("5. Ensured a teacher can have at most one exam in a timeslot")
+    resultArea.insert(END, "5. Ensured a teacher can have at most one exam in a timeslot\n")
+    resultArea.update()
 
     final_schedule = []
     time_dict = {}
@@ -153,6 +163,9 @@ def generate_examination_schedule(days_number, timeslots_number, time_per_exam, 
 
     if solver.check() == sat:
         print('status: sat\n')
+        resultArea.insert(END, "status: sat\n")
+        resultArea.update()
+
         model = solver.model()
 
         for slotEntry in slot_dict:
@@ -172,23 +185,27 @@ def generate_examination_schedule(days_number, timeslots_number, time_per_exam, 
                                            exam_day, time_dict[hour_slot]])
     else:
         print('status: unsat\n')
+        resultArea.insert(END, "status: unsat\n\n")
+        resultArea.update()
 
     if final_schedule:
         # sort final schedule by day, and then by specialization year
         final_schedule.sort(key=lambda x: (x[4], x[2]))
         final_schedule.insert(0, ["Exam-Name", "Specialization", "Year", "Teacher", "Day", "Hour"])
+
+        resultArea.after(500, resultArea.delete('1.0', END))
         resultArea.insert(END, tabulate.tabulate(final_schedule, headers="firstrow", tablefmt="fancy_grid"))
         print(tabulate.tabulate(final_schedule, headers="firstrow", tablefmt="fancy_grid"))
     else:
         resultArea.insert(END, "---A proper schedule could not be generated for the input data---")
         print("---A proper schedule could not be generated for the input data---")
 
-    # add space for consecutive application runs
+    # add space for consecutive application runs (in terminal)
     print("\n\n")
 
 
 def browse(file_path):
-    filename = filedialog.askopenfilename(initialdir="/", title="Select a File",
+    filename = filedialog.askopenfilename(title="Select a File",
                                           filetypes=(("CSV files", "*.csv*"), ("all files", "*.*")))
     file_path.set(filename)
 
@@ -219,7 +236,7 @@ window.geometry("1024x600")
 Label(window, text="Select a .csv file containing Exams", background="white").grid(pady=(8, 4), sticky='e')
 
 filePath = StringVar()
-Entry(window, textvariable=filePath, width=36, state=DISABLED).grid(padx=4, pady=4, row=1, sticky='e')
+Entry(window, textvariable=filePath, width=36, state='readonly').grid(padx=4, pady=4, row=1, sticky='e')
 Button(window, text="Browse", width=16, command=lambda: browse(filePath)).grid(row=1, column=1, sticky='w')
 
 Label(window, text="Number of days in examination session", background="white").grid(row=2, padx=4, pady=4, sticky='e')
@@ -227,10 +244,21 @@ Label(window, text="Timeslots per day", background="white").grid(row=3, padx=4, 
 Label(window, text="Time per exam (expressed in hours)", background="white").grid(row=4, padx=4, pady=4, sticky='e')
 Label(window, text="Exams starting hour", background="white").grid(row=5, padx=4, pady=4, sticky='e')
 
+# Number of days
 entry1 = Entry(window, width=8)
+
+# Number of time slots
 entry2 = Entry(window, width=8)
+
+# Time per exam
 entry3 = Entry(window, width=8)
+
+# Starting hour
 entry4 = Entry(window, width=8)
+
+# Populate the most commonly used values
+entry3.insert(0, '2')
+entry4.insert(0, '8')
 
 entry1.grid(row=2, column=1, sticky='w')
 entry2.grid(row=3, column=1, sticky='w')
@@ -242,7 +270,7 @@ Button(window, text='Generate Schedule', width=16,
                                                                                                            sticky='e',
                                                                                                            padx=4,
                                                                                                            pady=6)
-Button(window, text="Reset Data", width=16, command=reset_data).grid(row=6, column=1, padx=4, pady=6, sticky='w')
+Button(window, text="Clear Result", width=16, command=reset_data).grid(row=6, column=1, padx=4, pady=6, sticky='w')
 
 # prevent user from typing in the text area
 resultArea = ScrolledText(window, width=125, height=21)
